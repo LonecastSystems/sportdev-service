@@ -18,29 +18,24 @@ type Class struct {
 const Classes = "classes"
 
 func (client *RestClient) GetClasses(ctx context.Context, sport string) ([]Class, error) {
-	classes := []Class{}
-
-	err := Get(client, ctx, sport, Classes, url.Values{}, &classes)
-
-	return classes, err
+	return getClasses(client, ctx, sport, "", nil)
 }
 
 func (client *RestClient) GetClassesByID(ctx context.Context, sport string, id int) ([]Class, error) {
-	classes := []Class{}
-
-	values := url.Values{}
-	values.Set("id", fmt.Sprintf("eq.%v", id))
-
-	err := Get(client, ctx, sport, Classes, values, &classes)
-
-	return classes, err
+	return getClasses(client, ctx, sport, "id", id)
 }
 
 func (client *RestClient) GetClassesByAlpha(ctx context.Context, sport string, alpha string) ([]Class, error) {
+	return getClasses(client, ctx, sport, "alpha", alpha)
+}
+
+func getClasses(client *RestClient, ctx context.Context, sport string, query string, id any) ([]Class, error) {
 	classes := []Class{}
 
 	values := url.Values{}
-	values.Set("alpha", fmt.Sprintf("eq.%v", alpha))
+	if query != "" && id != nil {
+		values.Set(query, fmt.Sprintf("eq.%v", id))
+	}
 
 	err := Get(client, ctx, sport, Classes, values, &classes)
 

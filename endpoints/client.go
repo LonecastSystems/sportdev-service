@@ -59,7 +59,9 @@ func Get[T any](client *RestClient, ctx context.Context, sport string, resource 
 	path := fmt.Sprintf("https://%v.sportdevs.com/%v", sport, resource)
 
 	url := url.URL{Path: path, RawQuery: values.Encode()}
-	req, err := http.NewRequest("GET", url.RequestURI(), nil)
+	urlStr := url.RequestURI()
+
+	req, err := http.NewRequest("GET", urlStr, nil)
 	if err != nil {
 		return err
 	}
@@ -69,11 +71,14 @@ func Get[T any](client *RestClient, ctx context.Context, sport string, resource 
 		return err
 	}
 
-	defer res.Body.Close()
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		return err
+	if res.StatusCode != http.StatusOK {
+		return fmt.Errorf("%v failed: %v", urlStr, res.StatusCode)
 	}
 
-	return json.Unmarshal(body, &response)
+	defer res.Body.Close()
+	if body, err := io.ReadAll(res.Body); err != nil {
+		return err
+	} else {
+		return json.Unmarshal(body, &response)
+	}
 }
